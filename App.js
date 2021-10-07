@@ -9,7 +9,10 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  KeyboardAvoidingView,
+  Keyboard,
   ScrollView,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -59,6 +62,8 @@ const App = () => {
   const [tasks, setTasks] = useState([]);
   const [titleTask, setTitleTask] = useState('');
   const [searchText, setSearchText] = useState('');
+  const [searchDate, setSeachDate] = useState('');
+  const [searchPriority, setSearchPriority] = useState('');
   const [date, setDate] = useState(new Date());
   const [isPickDate, setIsPickDate] = useState(false);
   const [isStore, setIsStore] = useState(false);
@@ -73,9 +78,9 @@ const App = () => {
   const [priority, setPriority] = useState('MEDIUM');
   const [priorityOpen, setPriorityOpen] = useState(false);
   const [priorityOption, setPriorityOption] = useState([
-    { label: 'Low', value: 'LOW' },
-    { label: 'Medium', value: 'MEDIUM' },
-    { label: 'High', value: 'HIGH' },
+    { label: 'Low', value: 'LOW', icon: () => <Image source={require('./src/assets/images/low.png')} style={{ width: 15, height: 15 }} /> },
+    { label: 'Medium', value: 'MEDIUM', icon: () => <Image source={require('./src/assets/images/medium.png')} style={{ width: 15, height: 15 }} /> },
+    { label: 'High', value: 'HIGH', icon: () => <Image source={require('./src/assets/images/high.png')} style={{ width: 15, height: 15 }} /> },
   ]);
 
   async function getData() {
@@ -83,7 +88,10 @@ const App = () => {
       const value = await AsyncStorage.getItem('@storage_Key');
       console.log('GetData: ' + value);
       if (value !== null && value.length >= 0) {
-        setTasks(JSON.parse(value));
+        let dt = JSON.parse(value);
+        setTasks(dt);
+
+        explainShowData(dt);
       }
     } catch (e) {
       // error reading value
@@ -142,10 +150,12 @@ const App = () => {
         priority: priority,
       },
     ];
+    Keyboard.dismiss();
     setTasks(newTask);
     explainShowData();
     setTitleTask('');
     setIsPickDate(false);
+    // setIsShowAdd(false);
     storeData(newTask);
     setIsStore(!isStore);
   };
@@ -190,12 +200,13 @@ const App = () => {
     if (value === 'ALL') {
       setShowDone(false);
       setShowNotDone(false);
-      setShowAll(false);
+      setShowAll(true);
     }
   };
 
-  const _searcheText = () => {
-    let newDataShow = tasks.filter(item => item.title.includes(searchText));
+  const _searcheText = (text) => {
+    let newDataShow = tasks.filter(item => item.title.includes(text));
+    setSearchText(text);
     setShowData(newDataShow);
   };
 
@@ -219,26 +230,35 @@ const App = () => {
   const Search = () => {
     return (
       <View style={styles.addingTaskContainer}>
-        <TextInput
-          placeholder={'Tìm gì nè baby ♥'}
-          style={styles.searchText}
-          value={searchText}
-          onChangeText={txt => setSearchText(txt)}
-          onEndEditing={() => _searcheText()}
-        />
+        <View style={styles.addTaskInputText}>
+          <TextInput
+            placeholder={'Tìm gì nè baby ♥'}
+            style={styles.searchText}
+             value={searchText}
+            onChangeText={text => _searcheText(text)}
+          //  onEndEditing={Keyboard.dismiss()}
+          />
+          <TouchableOpacity style={styles.addingTaskButton} onPress={() =>setSearchText('')}>
+            <Icon name="trash" size={24} color={COLOR.mainColor} style={{ marginRight: 5 }} />
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
+
   const AddTask = () => {
     return (
       <View>
         <View style={styles.addingTaskContainer}>
-          <View style={styles.priorityContainer}>
+          <View style={[styles.addTaskInputText, {
+                borderColor: !isError || titleTask !== ''
+                    ? 'black'
+                    : 'red'}]}>
             <TextInput
               placeholder={'Làm gì, lúc nào nè baby ♥'}
               style={styles.titleText}
               value={titleTask}
-              onChangeText={title => setTitleTask(title)}
+              onChangeText={setTitleTask}
             />
             <TouchableOpacity style={styles.addingTaskButton} onPress={_addTask}>
               <Icon name="plus-circle" size={24} color={COLOR.mainColor} style={{ marginRight: 5 }} />
@@ -246,18 +266,16 @@ const App = () => {
           </View>
         </View>
         {
-          isError ? (<Text style={{ color: 'red' }}>Chưa điền task nè meo meo</Text>) : (<View />)
+          isError ? (<Text style={{ color: 'red', marginLeft: 20, marginTop: 3, marginBottom: 5 }}>Chưa điền task nè meo meo !!</Text>) : (<View />)
         }
-
-
-        <View>
+        <View style={{ paddingHorizontal: 15 }}>
           <View style={styles.priorityContainer}>
             {/* <Text style={styles.priorityText}>Priority nè</Text> */}
             <View style={{ marginLeft: 5 }}>
-              <TouchableOpacity onPress={() => setIsPickDate(!isPickDate)}>
+              <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => setIsPickDate(!isPickDate)}>
                 <View style={styles.rowDirect}>
-                  <Icon name={'calendar'} size={24} color={COLOR.pinkColor} />
-                  <Text style={{ marginLeft: 5, fontSize: 16, fontWeight: '600', color: '#704462' }}>{format(date, 'dd/MM/yyyy HH:mm')}</Text>
+                  <Icon name={'calendar'} size={24} color={'#434545'} />
+                  <Text style={{ marginLeft: 5, fontSize: 15, fontWeight: '300', color: 'black' }}>{format(date, 'dd/MM/yyyy HH:mm')}</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -269,17 +287,28 @@ const App = () => {
                 setOpen={setPriorityOpen}
                 setValue={setPriority}
                 setItems={setPriorityOption}
-                style={{ width: 150 }}
-                disabledStyle={{
-                  opacity: 0.5,
-                  
+                style={{ width: 130, height: 40, marginBottom: 10, marginTop: 10, marginRight: 15, borderWidth: 0.5 , marginEnd: 10}}
+                dropDownDirection={'TOP'}
+                containerStyle={{
+                  width: 130,
+                  marginRight: 10
                 }}
+                disabledStyle={{
+                  opacity: 1,
+                  fontSize: 15,
+                  fontWeight: '300',
+                  color: 'black',
+                }}
+                drop
                 labelStyle={{
-                  fontWeight: "bold"
+                  fontSize: 15,
+                  fontWeight: '300',
+                  color: 'black',
                 }}
                 textStyle={{
-                  fontSize: 20,
-                  color: COLOR.mainColor,
+                  fontSize: 15,
+                  fontWeight: '300',
+                  color: 'black',
                 }}
               />
             </View>
@@ -292,14 +321,27 @@ const App = () => {
             ) : (
               <View />
             )}
-
           </View>
+          <View
+            style={{
+              marginTop: 10,
+              borderBottomColor: 'black',
+              borderBottomWidth: 0.5,
+              marginLeft: 15,
+              marginRight: 15
+            }}
+          />
         </View>
 
+      </View>
+    );
+  };
 
-
-
-
+  const NonTask = props => {
+    const { text } = props;
+    return (
+      <View style={{ alignContent: 'center', justifyContent: 'center', alignItems: 'center', marginTop: 40, paddingHorizontal: 15 }} >
+        <Text style={{ color: COLOR.pinkColor, fontSize: 15, fontWeight: '400' }}>{text}</Text>
       </View>
     );
   };
@@ -350,58 +392,94 @@ const App = () => {
   };
 
   return (
-    <View style={styles.backgroundStyle}>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <View style={styles.parentContainer} />
-        <HeaderConponent />
-        {/* Adding task */}
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.backgroundStyle}>
+        <StatusBar hidden />
+        <View style={styles.parentContainer} >
+          <HeaderConponent />
+          {/* Adding task */}
+          <View style={styles.optionZone}>
+            <TouchableOpacity style={styles.addTaskButton} onPress={() => setOptionZone('ADD')}>
+              <Icon name={'plus'} />
+              <Text style={{ color: 'green', marginLeft: 5 }}>ADD</Text>
+            </TouchableOpacity>
 
-        <View style={styles.optionZone}>
-          <TouchableOpacity style={styles.addTaskButton} onPress={() => setOptionZone('ADD')}>
-            <Icon name={'plus'} />
-            <Text style={{ color: 'green', marginLeft: 5 }}>ADD</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.searchButton} onPress={() => setOptionZone('SEARCH')}>
+              <Icon name={'search'} />
+              <Text style={{ color: 'green', marginLeft: 5 }}>SEARCH</Text>
+            </TouchableOpacity>
+          </View>
+          <View>
+            {isShowAdd ? AddTask() : isShowSearch ? Search() : <View />}
+          </View>
 
-          <TouchableOpacity style={styles.searchButton} onPress={() => setOptionZone('SEARCH')}>
-            <Icon name={'search'} />
-            <Text style={{ color: 'green', marginLeft: 5 }}>SEARCH</Text>
-          </TouchableOpacity>
+
+          {/* Title of body */}
+          <View style={styles.titleBodyContainer}>
+            <Text style={styles.todayTaskText}>Để xem nay cần làm gì</Text>
+            <Text>{tasks.filter((item) => !item.status).length + '/' + tasks.length} ♥</Text>
+          </View>
+          <View style={styles.taskListPerStatusContainer}>
+            <TouchableOpacity
+              style={{
+                paddingHorizontal: 15,
+                borderWidth: 1 / 2,
+                borderRadius: 15,
+                height: 30,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: showAll ? '#f58ecc' : '#ffff',
+              }}
+              onPress={() => _setShow('ALL')}>
+              <Text style={{ color: showAll ? 'white' : 'black', fontWeight: showAll ? 'bold' : '400' }}>ALL</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{
+              paddingHorizontal: 15,
+              borderWidth: 1 / 2,
+              borderRadius: 15,
+              height: 30,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: showNotDone ? '#f58ecc' : '#ffff',
+            }}
+              onPress={() => _setShow('NOT_DONE')}>
+              <Text style={{ color: showNotDone ? 'white' : 'red', fontWeight: showNotDone ? 'bold' : '400' }}>NOT DONE</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{
+              paddingHorizontal: 15,
+              borderWidth: 1 / 2,
+              borderRadius: 15,
+              height: 30,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: showDone ? '#f58ecc' : '#ffff',
+            }}
+              onPress={() => _setShow('DONE')}>
+              <Text style={{ color: showDone ? 'white' : 'green', fontWeight: showDone ? 'bold' : '400' }}>DONE</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Task Lisrt */}
+
+          {/* <View style={{ flexGrow: 1, marginBottom: 100 }}> */}
+          {showData.length !== 0 ?
+            (<FlatList
+              data={showData.length === 0 ? tasks : showData}
+              renderItem={({ item, index }) => <PerTask task={item} />}
+              keyExtractor={(item, index) => String(index)}
+              contentContainerStyle={styles.taskListItem}
+            />)
+            : <NonTask text={showAll && searchText === ''
+              ? "Chưa có task nào nè baby, thêm task vào làm nào !!"
+              : showDone && searchText === ''
+                ? "Chưa có task nào xong nè baby, lo làm đi nè !!"
+                : showNotDone && searchText === ''
+                  ? "Chưa có task nào chưa xong nè baby, xoã thôi !!"
+                  : "Chưa có task nào cho từ khoá '" + searchText + "' nè baby !!"} />
+          }
         </View>
-        <View>
-          {isShowAdd ? <AddTask /> : isShowSearch ? <Search /> : <View />}
-        </View>
-
-        {/* Title of body */}
-        <View style={styles.titleBodyContainer}>
-          <Text style={styles.todayTaskText}>Để xem nay cần làm gì</Text>
-          <Text>{tasks.filter((item) => !item.status).length + '/' + tasks.length} ♥</Text>
-        </View>
-        <View style={styles.taskListPerStatusContainer}>
-          <TouchableOpacity
-            style={styles.taskLisrPerStatus}
-            onPress={() => _setShow('ALL')}>
-            <Text>ALL</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.taskLisrPerStatus} onPress={() => _setShow('NOT_DONE')}>
-            <Text style={{ color: 'red' }}>NOT DONE</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.taskLisrPerStatus} onPress={() => _setShow('DONE')}>
-            <Text style={{ color: 'green' }}>DONE</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Task Lisrt */}
-
-        <FlatList
-          data={showData.length === 0 ? tasks : showData}
-          renderItem={({ item, index }) => <PerTask task={item} />}
-          keyExtractor={(item, index) => String(index)}
-          contentContainerStyle={styles.taskListItem}
-        />
-
-      </SafeAreaView>
-    </View>
+      </View >
+    </SafeAreaView>
   );
 };
 
@@ -441,7 +519,7 @@ const styles = StyleSheet.create({
     marginRight: 10
   },
   searchText: {
-    borderWidth: 1 / 2,
+    // borderWidth: 1 / 2,
     borderRadius: 15,
     flex: 1,
     height: 40,
@@ -452,13 +530,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 10,
     alignItems: 'center',
+    paddingHorizontal: 15,
+  },
+  addTaskInputText: {
+    flexDirection: 'row',
+    marginTop: 5,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1 / 2,
+    borderRadius: 10,
   },
   priorityContainer: {
     flexDirection: 'row',
     marginTop: 5,
     alignItems: 'center',
     justifyContent: 'space-between',
-    // paddingHorizontal: 10,
     borderWidth: 1 / 2,
     borderRadius: 10,
   },
@@ -473,9 +559,11 @@ const styles = StyleSheet.create({
   titleBodyContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingHorizontal: 10,
     marginTop: 10,
   },
   preTaskContainer: {
+    flex: 1,
     height: 50,
     width: '100%',
     marginTop: 10,
