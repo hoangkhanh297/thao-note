@@ -3,11 +3,11 @@ import {
   StyleSheet,
   View,
   Text,
-  TouchableOpacity,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import Collapsible from 'react-native-collapsible';
-import PerTask from "../components/PerTask.js";
+import Task from "./Task.js";
+import SubTask from "./SubTask.js";
+
 const COLOR = {
   mainColor: '#6C6DB4',
   greenColor: 'rgb(77, 196, 144)',
@@ -17,46 +17,32 @@ const TASK_STATUS = {
   DONE: true,
   NOT_DONE: false,
 };
-const TaskWithSubTask = (props) => {
-  const { taskItem, statusSubTask } = props;
+const Tasks = (props) => {
+  const { taskItem, changeStatusSubTask, changeStatusMainTask } = props;
   const [isCollapsed, setIsCollapsed] = useState(true);
+
+  const onCollapse = () => {
+    console.log('On colapse')
+    if (taskItem.subTask != undefined && taskItem.subTask != null && taskItem.subTask.length !== 0) {
+      setIsCollapsed(!isCollapsed);
+    } else {
+      setIsCollapsed(true);
+    }
+  }
 
   console.log('Task item at TaskWithSubTask ' + JSON.stringify(taskItem))
   return (
-    <View>
-      <TouchableOpacity onPress={() => setIsCollapsed(!isCollapsed)}>
-        <PerTask task={taskItem.mainTask} />
-      </TouchableOpacity>
+    <View style={{ flex: 1 }}>
+      <Task mainTaskId={taskItem.id} task={taskItem.mainTask} changeStatusMainTask={changeStatusMainTask} onCollapse={onCollapse} />
       <Collapsible collapsed={isCollapsed}>
-        {taskItem.subTask.map((item) => {
+      { taskItem.subTask != undefined && taskItem.subTask != null && taskItem.subTask.length !== 0 ? (
+        taskItem.subTask.map((item) => {
           return (
-            <View style={{
-              marginLeft: 40, flex: 1,
-              height: 30,
-              width: '87%',
-              marginTop: 5,
-              alignItems: 'center',
-              flexDirection: 'row',
-              paddingHorizontal: 15,
-              borderWidth: 0.2,
-              borderRadius: 10,
-              justifyContent: 'space-between'
-            }}>
-              <TouchableOpacity onPress={() => statusSubTask(taskItem.id, item.id)}>
-                {item.status ? (
-                  <Icon name={'heart'} size={20} color={COLOR.greenColor} />
-                ) : (
-                  <Icon name={'heart'} size={20} color={'red'} />
-                )}
-              </TouchableOpacity>
-              <Text style={styles.taskOnceTitle}>{item.title}</Text>
-              <View>
-                <Text style={styles.dateTime}>{item.date}</Text>
-                <Text style={styles.dateTime}>{item.time}</Text>
-              </View>
-            </View>
+            <SubTask task={item} changeStatusSubTask={changeStatusSubTask} mainTaskId={taskItem.id} />
           )
-        })}
+        })
+      ) : (<Text>Chua co task</Text>)}
+
       </Collapsible>
     </View>
   )
@@ -195,8 +181,8 @@ const styles = StyleSheet.create({
   },
 
   dateTime: {
-    marginLeft: 10,
-    fontSize: 12,
+    marginLeft: 8,
+    fontSize: 10,
   },
   note: {
     marginLeft: 10,
@@ -250,4 +236,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TaskWithSubTask;
+export default Tasks;

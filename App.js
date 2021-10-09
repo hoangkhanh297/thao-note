@@ -17,8 +17,7 @@ import HeaderConponent from "./src/components/Header.js";
 import AddTask from "./src/components/AddTask.js";
 import Search from "./src/components/Search.js";
 import NonTask from "./src/components/NonTask.js";
-import TaskWIthSubTask from "./src/components/TaskWIthSubTask.js";
-// import TaskWithSubTask from "./src/components/TaskWithSubTask.js";
+import Tasks from "./src/components/Tasks.js";
 
 const COLOR = {
   mainColor: '#6C6DB4',
@@ -29,14 +28,14 @@ const COLOR = {
 const exam = [
   {
     "id": 1633698553197,
-    mainTask: {
+    "mainTask": {
       "title": "Main task  1",
       "status": false,
       "date": "08/10/2021",
       "time": "08:02 PM",
-      "priority": "MEDIUM",
+      "priority": "MEDIUM"
     },
-    subTask: [
+    "subTask": [
       {
         "id": 1633698553195,
         "title": "subtask 1.1",
@@ -56,17 +55,17 @@ const exam = [
     ]
   },
   {
-    "id": 1633698553108,
-    mainTask: {
+    "id": 1633698553190,
+    "mainTask": {
       "title": "Main task 2",
       "status": false,
       "date": "08/10/2021",
       "time": "08:02 PM",
-      "priority": "MEDIUM",
+      "priority": "MEDIUM"
     },
-    subTask: [
+    "subTask": [
       {
-        "id": 16336985531107,
+        "id": 1633698553192,
         "title": "subtask 2.1",
         "status": false,
         "date": "08/10/2021",
@@ -74,64 +73,7 @@ const exam = [
         "priority": "MEDIUM"
       },
       {
-        "id": 1633698553106,
-        "title": "subtask 2.2",
-        "status": false,
-        "date": "08/10/2021",
-        "time": "08:02 PM",
-        "priority": "MEDIUM"
-      }
-    ]
-  },
-  {
-    "id": 1633698553105,
-    mainTask: {
-      "title": "Main task 2",
-      "status": false,
-      "date": "08/10/2021",
-      "time": "08:02 PM",
-      "priority": "MEDIUM",
-    },
-    subTask: [
-      {
-        "id": 1633698553104,
-        "title": "subtask 2.1",
-        "status": false,
-        "date": "08/10/2021",
-        "time": "08:02 PM",
-        "priority": "MEDIUM"
-      },
-      {
-        "id": 1633698553103,
-        "title": "subtask 2.2",
-        "status": false,
-        "date": "08/10/2021",
-        "time": "08:02 PM",
-        "priority": "MEDIUM"
-      }
-    ]
-  },
-
-  {
-    "id": 1633698553102,
-    mainTask: {
-      "title": "Main task 2",
-      "status": false,
-      "date": "08/10/2021",
-      "time": "08:02 PM",
-      "priority": "MEDIUM",
-    },
-    subTask: [
-      {
-        "id": 16336985531100,
-        "title": "subtask 2.1",
-        "status": false,
-        "date": "08/10/2021",
-        "time": "08:02 PM",
-        "priority": "MEDIUM"
-      },
-      {
-        "id": 1633698553101,
+        "id": 1633698553193,
         "title": "subtask 2.2",
         "status": false,
         "date": "08/10/2021",
@@ -145,7 +87,7 @@ const exam = [
 const App = () => {
   const [isShowAdd, setIsShowAdd] = useState(true);
   const [isShowSearch, setIsShowSearch] = useState(true);
-  const [taskList, setTaskList] = useState([]);
+  const [taskList, setTaskList] = useState(exam);
   const [showNotDone, setShowNotDone] = useState(true);
   const [showDone, setShowDone] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -173,33 +115,54 @@ const App = () => {
     }
   };
   const saveTask = (newTask) => {
-    setTaskList([...taskList, newTask])
+    console.log('new task to add ' + JSON.stringify(newTask));
+    setTaskList([...taskList, newTask]);
+    setShowData([...showData, newTask]);
     console.log(JSON.stringify(taskList));
+  }
+  const changeStatusMainTask = (mainTaskId) => {
+    console.log('Çhange status main task at APP ' + mainTaskId)
+    let newShowData = showData.map((task) => {
+      if (task.id === mainTaskId) {
+        return {
+          ...task,
+          mainTask: {
+            ...task.mainTask,
+            status: !task.mainTask.status
+          }
+        }
+      } else {
+        return task;
+      }
+    });
+    console.log('olde task ' + JSON.stringify(showData));
+    console.log('new task ' + JSON.stringify(newShowData));
+    setShowData(newShowData);
   }
 
   const changeStatusSubTask = (mainTaskId, subTaskId) => {
-    console.log('main id' + mainTaskId);
-    console.log('sub id' + subTaskId);
-    let newTask = 
-    taskList.map((mainTask) => {
-      if (mainTask.id === mainTaskId) {
-        return {
-          ...mainTask,
-          subTask: mainTask.subTask.map((subTask) => {
-            if (subTask.id === subTaskId) {
-              return {
-                ...subTask,
-                status: !subTask.status
+    console.log('main id ' + mainTaskId);
+    console.log('sub id ' + subTaskId);
+    let newTask =
+      showData.map((mainTask) => {
+        if (mainTask.id === mainTaskId) {
+          return {
+            ...mainTask,
+            subTask: mainTask.subTask.map((subTask) => {
+              if (subTask.id === subTaskId) {
+                return {
+                  ...subTask,
+                  status: !subTask.status
+                }
+              } else {
+                return subTask
               }
-            } else {
-              return subTask
-            }
-          })
+            })
+          }
+        } else {
+          return mainTask;
         }
-      } else {
-        return mainTask;
-      }
-    });
+      });
     setShowData(newTask);
   }
   const setOptionZone = value => {
@@ -283,23 +246,21 @@ const App = () => {
               <Text style={{ color: showDone ? 'white' : 'green', fontWeight: showDone ? 'bold' : '400' }}>DONE</Text>
             </TouchableOpacity>
           </View>
-          <View style={{ flexGrow: 1, marginBottom: 100 }}>
-            {showData.length !== 0 ?
-              (<FlatList
-                data={showData.length === 0 ? tasks : showData}
-                renderItem={({ item }) => <TaskWIthSubTask taskItem={item} statusSubTask={changeStatusSubTask} />}
-                keyExtractor={(item) => String(item.id)}
-                contentContainerStyle={styles.taskListItem}
-              />)
-              : <NonTask text={showAll
-                ? "Chưa có task nào nè baby, thêm task vào làm nào !!"
-                : showDone
-                  ? "Chưa có task nào xong nè baby, lo làm đi nè !!"
-                  : showNotDone
-                    ? "Chưa có task nào chưa xong nè baby, xoã thôi !!"
-                    : "Chưa có task nào cho từ khoá '" + searchText + "' nè baby !!"} />
-            }
-          </View >
+          {showData.length !== 0 ?
+            (<FlatList
+              data={showData.length === 0 ? tasks : showData}
+              renderItem={({ item }) => <Tasks taskItem={item} changeStatusMainTask={changeStatusMainTask} changeStatusSubTask={changeStatusSubTask} />}
+              keyExtractor={(item, index) => String(index)}
+              contentContainerStyle={[styles.taskListItem, { flexGrow: 1 }]}
+            />)
+            : <NonTask text={showAll
+              ? "Chưa có task nào nè baby, thêm task vào làm nào !!"
+              : showDone
+                ? "Chưa có task nào xong nè baby, lo làm đi nè !!"
+                : showNotDone
+                  ? "Chưa có task nào chưa xong nè baby, xoã thôi !!"
+                  : "Chưa có task nào cho từ khoá '" + searchText + "' nè baby !!"} />
+          }
         </View >
       </View >
     </SafeAreaView>

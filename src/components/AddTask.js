@@ -16,13 +16,13 @@ const COLOR = {
     mainColor: '#6C6DB4',
     greenColor: 'rgb(77, 196, 144)',
     pinkColor: '#CF9EF5',
-  };
-  
-  const TASK_STATUS = {
+};
+
+const TASK_STATUS = {
     DONE: true,
     NOT_DONE: false,
-  };
-  
+};
+
 
 const AddTask = (props) => {
     const { addTask } = props;
@@ -51,14 +51,18 @@ const AddTask = (props) => {
                         value={titleTask}
                         onChangeText={setTitleTask}
                     />
-                    <TouchableOpacity style={styles.addingTaskButton} onPress={() => addTask({
-                        id: new Date().getTime(),
-                        title: titleTask,
-                        status: TASK_STATUS.NOT_DONE,
-                        date: format(date, 'dd/MM/yyyy'),
-                        time: format(date, 'hh:mm a'),
-                        priority: priority,
-                    })}>
+                    <TouchableOpacity style={styles.addingTaskButton} onPress={() => addTask(
+                        {
+                            id: new Date().getTime(),
+                            mainTask: {
+                                title: titleTask,
+                                status: false,
+                                date: format(date, 'dd/MM/yyyy'),
+                                time: format(date, 'hh:mm a'),
+                                subTask: [],
+                                priority: priority,
+                            }
+                        })}>
                         <Icon name="plus-circle" size={24} color={COLOR.mainColor} style={{ marginRight: 5 }} />
                     </TouchableOpacity>
                 </View>
