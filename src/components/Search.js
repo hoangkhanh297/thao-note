@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -17,6 +17,11 @@ const COLOR = {
 const Search = (props) => {
   const { searching } = props;
   const [searchText, setSearchText] = useState('');
+
+  useEffect(() => {
+    console.log('Search ne')
+    searching(searchText);
+  }, [searchText]);
   return (
     <KeyboardAvoidingView>
       <View style={styles.addingTaskContainer}>
@@ -24,8 +29,8 @@ const Search = (props) => {
           <TextInput
             placeholder={'Tìm gì nè baby ♥'}
             style={styles.searchText}
-             value={searchText}
-            onChangeText={() => searching(searchText)}
+            value={searchText}
+            onChangeText={setSearchText}
           />
           <TouchableOpacity style={styles.addingTaskButton} onPress={() => setSearchText('')}>
             <Icon name="trash" size={24} color={COLOR.mainColor} style={{ marginRight: 5 }} />

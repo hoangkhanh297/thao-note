@@ -41,32 +41,19 @@ const App = () => {
   const [showAll, setShowAll] = useState(true);
   const [showData, setShowData] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const [image, setImage] = useState(null);
-
+  const [isFetching, setIsFetching] = useState(true);
 
   useEffect(() => {
     getData();
-    loadImage()
   }, []);
 
   useEffect(() => {
     explainShowData();
   }, [taskList, showAll, showDone, showNotDone]);
 
-  async function loadImage() {
-    try {
-      const value = await AsyncStorage.getItem('@storage_Key_Image');
-      console.log('Image from store: ' + value);
-      if (value !== null && value.length >= 0) {
-        let dt = JSON.parse(value);
-        setImage(dt);
-      }
-    } catch (e) {
-    }
-  }
-
   async function getData() {
     try {
+      setIsFetching(true);
       const value = await AsyncStorage.getItem('@storage_Key');
       console.log('Task list from storage: ' + value);
       if (value !== null && value.length >= 0) {
@@ -91,6 +78,9 @@ const App = () => {
     }
   }
   function explainShowData() {
+    if (!isFetching) {
+      setIsFetching(true);
+    }
     let data = [];
     if (showNotDone) {
       console.log('SHOW NOT DONE');
@@ -102,10 +92,14 @@ const App = () => {
       console.log('SHOW ALL');
       data = taskList;
     }
+    setTimeout(() => { setIsFetching(false); setShowData(data); }, 300)
     console.log('Show data ' + JSON.stringify(data))
-    setShowData(data);
+
   }
   const searching = (text) => {
+    if (!isFetching) {
+      setIsFetching(true);
+    }
     setSearchText(text)
     console.log("search text " + searchText)
     let newDataShow = [];
@@ -120,7 +114,7 @@ const App = () => {
         }
       }
     }
-    setShowData(newDataShow);
+    setTimeout(() => { setIsFetching(false); setShowData(newDataShow); }, 100)
   }
   const _setShow = value => {
     console.log('Show ' + value);
@@ -276,7 +270,7 @@ const App = () => {
       <View style={styles.backgroundStyle}>
         <StatusBar hidden />
         <View style={styles.parentContainer} >
-          <Header image={image}/>
+          <Header />
           <View style={styles.optionZone}>
             <TouchableOpacity style={styles.addTaskAndSearchButton} onPress={() => setOptionZone('ADD')}>
               <Icon name={'plus'} />
@@ -293,7 +287,7 @@ const App = () => {
 
           <View style={styles.titleBodyContainer}>
             <Text style={styles.todayTaskText}>Để xem nay cần làm gì</Text>
-            <Text>{taskList.filter((item) => !item.status).length + '/' + taskList.length} ♥</Text>
+            <Text>{taskList.filter((item) => !item.mainTask.status).length + '/' + taskList.length} ♥</Text>
           </View>
 
           <View style={styles.taskListPerStatusContainer}>
@@ -338,6 +332,8 @@ const App = () => {
           {showData.length !== 0 ?
             (<FlatList
               removeClippedSubviews={false}
+              onRefresh={() => getData()}
+              refreshing={isFetching}
               onScroll={() => [setIsShowAdd(false), setIsShowSearch(false)]}
               data={showData.length === 0 ? taskList : showData}
               renderItem={({ item }) => <Tasks

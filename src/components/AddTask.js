@@ -21,7 +21,7 @@ const COLOR = {
 const AddTask = (props) => {
     const { addTask } = props;
     const [titleTask, setTitleTask] = useState('');
-    const [isError, setIsError] = useState(false);
+    const [error, setError] = useState('');
     const [date, setDate] = useState(new Date());
     const [isPickDate, setIsPickDate] = useState(false);
     const [priorityOpen, setPriorityOpen] = useState(false);
@@ -31,11 +31,39 @@ const AddTask = (props) => {
         { label: 'Low', value: 'LOW', icon: () => <Image source={require('../assets/images/low.png')} style={{ width: 15, height: 15 }} /> },
         { label: 'High', value: 'HIGH', icon: () => <Image source={require('../assets/images/high.png')} style={{ width: 15, height: 15 }} /> },
     ]);
+
+    const validateAndAdd = () => {
+        if (titleTask === '') {
+            console.log('Chưa điền task nè meo meo!!')
+            setError('Chưa điền task nè meo meo!!');
+            return;
+        }
+        if (date < new Date().setHours(0)) {
+            console.log('Baby chọn ngày ' + format(date, 'dd/MM/yyyy HH:mm:ss a') + format(currentDate, 'dd/MM/yyyy HH:mm:ss a') + ', ngày này sai nè!!')
+            setError('Baby chọn ngày ' + format(date, 'dd/MM/yyyy HH:mm a') + ', ngày này sai nè!!')
+            return;
+        }
+        addTask(
+            {
+                id: new Date().getTime(),
+                subTask: [],
+                mainTask: {
+                    title: titleTask,
+                    status: false,
+                    date: format(date, 'dd/MM/yyyy'),
+                    time: format(date, 'hh:mm a'),
+                    priority: priority,
+                }
+            });
+        setTitleTask('');
+        setIsPickDate(false);
+        setError('');
+    }
     return (
         <View>
             <View style={styles.addingTaskContainer}>
                 <View style={[styles.addTaskInputText, {
-                    borderColor: !isError || titleTask !== ''
+                    borderColor: error === ''
                         ? 'black'
                         : 'red'
                 }]}>
@@ -43,30 +71,22 @@ const AddTask = (props) => {
                         placeholder={'Làm gì, lúc nào nè baby ♥'}
                         style={styles.titleText}
                         value={titleTask}
-                        onChangeText={setTitleTask}
+                        onChangeText={(text) => [setTitleTask(text), setError('')]}
                     />
-                    <TouchableOpacity style={styles.addingTaskButton} onPress={() => [addTask(
-                        {
-                            id: new Date().getTime(),
-                            subTask: [],
-                            mainTask: {
-                                title: titleTask,
-                                status: false,
-                                date: format(date, 'dd/MM/yyyy'),
-                                time: format(date, 'hh:mm a'),
-                                subTask: [],
-                                priority: priority,
-                            }
-                        }), setTitleTask(''), setIsPickDate(false)]}>
+                    <TouchableOpacity style={styles.addingTaskButton} onPress={() => validateAndAdd()}>
                         <Icon name="plus-circle" size={24} color={COLOR.mainColor} style={{ marginRight: 5 }} />
                     </TouchableOpacity>
                 </View>
             </View>
             {
-                isError ? (<Text style={{ color: 'red', marginLeft: 20, marginTop: 3, marginBottom: 5 }}>Chưa điền task nè meo meo !!</Text>) : (<View />)
+                error !== '' ? (<Text style={{ color: 'red', marginLeft: 20, marginTop: 3, marginBottom: 5 }}>{error}</Text>) : (<View />)
             }
             <View style={{ paddingHorizontal: 15 }}>
-                <View style={styles.priorityContainer}>
+                <View style={[styles.priorityContainer, {
+                    borderWidth: 0.5, borderColor: error === ''
+                        ? 'black'
+                        : 'red'
+                }]}>
                     {/* <Text style={styles.priorityText}>Priority nè</Text> */}
                     <View style={{ marginLeft: 5 }}>
                         <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => setIsPickDate(!isPickDate)}>
@@ -173,6 +193,10 @@ const styles = StyleSheet.create({
     },
     addingTaskButton: {
         marginLeft: 5,
+    },
+    rowDirect: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 });
 

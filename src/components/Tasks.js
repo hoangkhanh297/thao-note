@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
 } from 'react-native';
 import Collapsible from 'react-native-collapsible';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import Task from "./Task.js";
 import SubTask from "./SubTask.js";
 
@@ -26,7 +24,7 @@ const Tasks = (props) => {
   const forceNotCollapse = () => {
     setIsCollapsed(false)
   }
-  
+
 
   console.log('Task item at Tasks ' + JSON.stringify(taskItem))
   return (
@@ -44,7 +42,7 @@ const Tasks = (props) => {
           />
         </View>
       </View>
-      <Collapsible collapsed={isCollapsed}>
+      <Collapsible collapsed={isCollapsed} style={{ marginRight: 5 }}>
         {taskItem.subTask != undefined && taskItem.subTask != null && taskItem.subTask.length !== 0 ? (
           taskItem.subTask.map((item) => {
             return (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   View,
@@ -12,10 +12,6 @@ const COLOR = {
   greenColor: 'rgb(77, 196, 144)',
   pinkColor: '#CF9EF5',
 };
-const TASK_STATUS = {
-  DONE: true,
-  NOT_DONE: false,
-};
 const SubTask = props => {
   const { task, mainTaskId, changeStatusSubTask, deleteSubTask } = props;
   console.log('Sub task ' + JSON.stringify(task));
@@ -23,14 +19,14 @@ const SubTask = props => {
     <View style={styles.preTaskContainer}>
       <View style={styles.rowDirect}>
         <TouchableOpacity onPress={() => changeStatusSubTask(mainTaskId, task.id)}>
-          <Icon name={'heart'} size={24} color={task.status ? COLOR.greenColor : 'red'} />
+          <Icon name={'heart'} size={20} color={task.status ? COLOR.greenColor : 'red'} />
         </TouchableOpacity>
         <Text style={styles.taskOnceTitle}>{task.title}</Text>
       </View>
       <View style={styles.rowDirect}>
         <Icon
           name={'arrow-up'}
-          size={15}
+          size={13}
           color={
             task.priority === 'MEDIUM'
               ? '#ba9e11'
@@ -49,14 +45,12 @@ const SubTask = props => {
         onPress={() => deleteSubTask(mainTaskId, task.id)}>
         <Icon
           name={'times-circle'}
-          size={24}
+          size={20}
           color={'red'}
           style={styles.deleteIcon}
         />
       </TouchableOpacity>
     </View>
-
-
   );
 };
 
@@ -72,7 +66,7 @@ const styles = StyleSheet.create({
   },
   dateTime: {
     marginLeft: 10,
-    fontSize: 12,
+    fontSize: 10,
   },
   deleteButton: {
     position: 'absolute',
@@ -91,6 +85,7 @@ const styles = StyleSheet.create({
     borderWidth: 1 / 2,
     borderRadius: 15,
     marginLeft: 40,
+    marginRight: 50,
     justifyContent: 'space-between',
   },
 });
