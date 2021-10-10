@@ -36,21 +36,34 @@ const App = () => {
   const [mainTaskIdForAdd, setMainTaskIdForAdd] = useState(0);
   const [isShowSearch, setIsShowSearch] = useState(false);
   const [taskList, setTaskList] = useState([]);
-  const [showNotDone, setShowNotDone] = useState(true);
+  const [showNotDone, setShowNotDone] = useState(false);
   const [showDone, setShowDone] = useState(false);
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(true);
   const [showData, setShowData] = useState([]);
   const [searchText, setSearchText] = useState('');
+  const [image, setImage] = useState(null);
 
 
   useEffect(() => {
     getData();
+    loadImage()
   }, []);
 
   useEffect(() => {
     explainShowData();
   }, [taskList, showAll, showDone, showNotDone]);
 
+  async function loadImage() {
+    try {
+      const value = await AsyncStorage.getItem('@storage_Key_Image');
+      console.log('Image from store: ' + value);
+      if (value !== null && value.length >= 0) {
+        let dt = JSON.parse(value);
+        setImage(dt);
+      }
+    } catch (e) {
+    }
+  }
 
   async function getData() {
     try {
@@ -263,7 +276,7 @@ const App = () => {
       <View style={styles.backgroundStyle}>
         <StatusBar hidden />
         <View style={styles.parentContainer} >
-          <Header />
+          <Header image={image}/>
           <View style={styles.optionZone}>
             <TouchableOpacity style={styles.addTaskAndSearchButton} onPress={() => setOptionZone('ADD')}>
               <Icon name={'plus'} />

@@ -13,7 +13,7 @@ const COLOR = {
   pinkColor: '#CF9EF5',
 };
 const Task = props => {
-  const { task, changeStatusMainTask, onCollapse, mainTaskId, deleteMainTask } = props;
+  const { task, changeStatusMainTask, onCollapse, mainTaskId, deleteMainTask, showAddTask, forceNotCollapse } = props;
   console.log("Main task " + JSON.stringify(task))
   return (
     <View style={styles.preTaskContainer}>
@@ -24,8 +24,13 @@ const Task = props => {
         <TouchableOpacity style={{ marginLeft: 5, width: '70%' }} onPress={() => onCollapse()}>
           <Text style={styles.taskOnceTitle}>{task.title}</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={{marginLeft: 5}}
+          onPress={() => [showAddTask(true, task.id), forceNotCollapse()]}>
+          <Icon name="plus-circle" size={20} color={'pink'} style={{}} />
+        </TouchableOpacity>
       </View>
-      <View style={[styles.rowDirect]}>
+      <View style={[styles.rowDirect, {marginLeft: -19}]}>
         <Icon
           name={'arrow-up'}
           size={15}
@@ -190,7 +195,7 @@ const styles = StyleSheet.create({
   },
 
   dateTime: {
-    marginLeft: 10,
+    marginLeft: 5,
     fontSize: 12,
   },
   note: {

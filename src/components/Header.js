@@ -1,25 +1,89 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
   Image,
   Text,
+  TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import * as ImagePicker from "react-native-image-picker"
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLOR = {
   mainColor: '#6C6DB4',
   greenColor: 'rgb(77, 196, 144)',
   pinkColor: '#CF9EF5',
 };
-const Header = (props) => {
+const Header = () => {
+  const [resourcePath, setResourcePath] = useState(null);
+
+  useEffect(() => {
+    console.log('Test user effect')
+    loadImage();
+  }, []);
+  async function loadImage() {
+    try {
+      const value = await AsyncStorage.getItem('@storage_Key_Image');
+      console.log('Image from store: ' + value);
+      if (value !== null && value.length >= 0) {
+        let dt = JSON.parse(value);
+        setResourcePath(dt);
+      }
+    } catch (e) {
+    }
+  }
+  async function saveImage() {
+    try {
+      if (resourcePath != null) {
+        let strDt = JSON.stringify(resourcePath);
+        console.log('Save image ' + strDt);
+        await AsyncStorage.setItem('@storage_Key_Image', strDt);
+      } else {
+        return;
+      }
+    } catch (e) {
+      return;
+    }
+  }
+  const selectFile = () => {
+    var options = {
+      mediaType: 'photo',
+      saveToPhotos: true,
+      includeBase64: true,
+      maxWidth: 90,
+      maxHeight: 90,
+      quality: 1,
+    };
+    ImagePicker.launchImageLibrary(options, res => {
+      if (res.didCancel) {
+        console.log('Cancel change avatar ' + JSON.stringify(res));
+      } else if (res.errorCode !== undefined || res.errorCode !== null) {
+        console.log('Select image error ' + res.errorCode);
+      } else {
+        console.log('Response = ', res);
+        setResourcePath(res)
+        saveImage()
+      }
+    });
+  };
   return (
     <View style={styles.headerContainer}>
       <View style={styles.avatarContainer}>
-        <Image
-          source={require('../assets/images/avt.jpg')}
-          style={styles.avatarImage}
-        />
+        <TouchableOpacity onPress={() => selectFile()}>
+          <Image
+            source={
+              resourcePath === undefined
+                || resourcePath === null
+                || resourcePath.assets[0] === undefined
+                || resourcePath.assets[0] === null
+                || resourcePath.assets[0].uri == undefined
+                ? require('../assets/images/avt.jpg')
+                : { uri: resourcePath.assets[0].uri }}
+            style={styles.avatarImage}
+          />
+        </TouchableOpacity>
+
       </View>
       <View style={styles.headerText}>
         <Text style={styles.appName}> Thảo Nguyễn Todo App </Text>

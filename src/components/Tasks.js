@@ -23,6 +23,11 @@ const Tasks = (props) => {
     setIsCollapsed(!isCollapsed)
   }
 
+  const forceNotCollapse = () => {
+    setIsCollapsed(false)
+  }
+  
+
   console.log('Task item at Tasks ' + JSON.stringify(taskItem))
   return (
     <View style={{ flex: 1 }}>
@@ -34,18 +39,9 @@ const Tasks = (props) => {
             changeStatusMainTask={changeStatusMainTask}
             onCollapse={onCollapse}
             deleteMainTask={deleteMainTask}
+            showAddTask={showAddTask}
+            forceNotCollapse={forceNotCollapse}
           />
-          <TouchableOpacity style={{
-            marginTop: 10,
-            position: 'absolute',
-            height: 24,
-            width: 24,
-            top: 30,
-            right: -12,
-          }
-          } onPress={() => [showAddTask(true, taskItem.id), setIsCollapsed(false)]}>
-            <Icon name="plus-circle" size={24} color={COLOR.mainColor} style={{ marginRight: 5 }} />
-          </TouchableOpacity>
         </View>
       </View>
       <Collapsible collapsed={isCollapsed}>

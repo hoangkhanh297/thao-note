@@ -16,7 +16,7 @@ const COLOR = {
 };
 const Search = (props) => {
   const { searching } = props;
-  const [searchText, setSearchText] = useState();
+  const [searchText, setSearchText] = useState('');
   return (
     <KeyboardAvoidingView>
       <View style={styles.addingTaskContainer}>
@@ -24,8 +24,8 @@ const Search = (props) => {
           <TextInput
             placeholder={'Tìm gì nè baby ♥'}
             style={styles.searchText}
-            value={searchText}
-            onChangeText={(text) => searching(text)}
+             value={searchText}
+            onChangeText={() => searching(searchText)}
           />
           <TouchableOpacity style={styles.addingTaskButton} onPress={() => setSearchText('')}>
             <Icon name="trash" size={24} color={COLOR.mainColor} style={{ marginRight: 5 }} />
