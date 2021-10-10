@@ -12,7 +12,7 @@ const COLOR = {
   greenColor: 'rgb(77, 196, 144)',
   pinkColor: '#CF9EF5',
 };
-const HeaderConponent = React.memo(() => {
+const Header = (props) => {
   return (
     <View style={styles.headerContainer}>
       <View style={styles.avatarContainer}>
@@ -37,7 +37,7 @@ const HeaderConponent = React.memo(() => {
       </View>
     </View>
   );
-});
+};
 
 
 const styles = StyleSheet.create({
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerContainer: {
-    height: 130,
+    height: 110,
     width: '100%',
     backgroundColor: 'rgba(71,73,161,0.8)',
     flexDirection: 'row',
@@ -228,4 +228,4 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
 });
-export default HeaderConponent;
+export default Header;

@@ -12,7 +12,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-import HeaderConponent from "./src/components/Header.js";
+import Header from "./src/components/Header.js";
 import AddTask from "./src/components/AddTask.js";
 import Search from "./src/components/Search.js";
 import NonTask from "./src/components/NonTask.js";
@@ -40,6 +40,7 @@ const App = () => {
   const [showDone, setShowDone] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [showData, setShowData] = useState([]);
+  const [searchText, setSearchText] = useState('');
 
 
   useEffect(() => {
@@ -92,7 +93,8 @@ const App = () => {
     setShowData(data);
   }
   const searching = (text) => {
-    console.log("search text " + text)
+    setSearchText(text)
+    console.log("search text " + searchText)
     let newDataShow = [];
     for (const item of taskList) {
       if (item.mainTask.title.includes(text)) {
@@ -261,7 +263,7 @@ const App = () => {
       <View style={styles.backgroundStyle}>
         <StatusBar hidden />
         <View style={styles.parentContainer} >
-          <HeaderConponent />
+          <Header />
           <View style={styles.optionZone}>
             <TouchableOpacity style={styles.addTaskAndSearchButton} onPress={() => setOptionZone('ADD')}>
               <Icon name={'plus'} />
@@ -323,6 +325,7 @@ const App = () => {
           {showData.length !== 0 ?
             (<FlatList
               removeClippedSubviews={false}
+              onScroll={() => [setIsShowAdd(false), setIsShowSearch(false)]}
               data={showData.length === 0 ? taskList : showData}
               renderItem={({ item }) => <Tasks
                 taskItem={item}
@@ -336,11 +339,11 @@ const App = () => {
               keyExtractor={(item, index) => String(index)}
               contentContainerStyle={[styles.taskListItem, { flexGrow: 1 }]}
             />)
-            : <NonTask text={showAll
+            : <NonTask text={showAll && searchText === ''
               ? "Chưa có task nào nè baby, thêm task vào làm nào !!"
-              : showDone
+              : showDone && searchText === ''
                 ? "Chưa có task nào xong nè baby, lo làm đi nè !!"
-                : showNotDone
+                : showNotDone && searchText === ''
                   ? "Chưa có task nào chưa xong nè baby, xoã thôi !!"
                   : "Chưa có task nào cho từ khoá '" + searchText + "' nè baby !!"} />
           }
