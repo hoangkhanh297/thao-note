@@ -4,13 +4,10 @@ import {
   View,
   StatusBar,
   SafeAreaView,
-  Image,
   Text,
   TouchableOpacity,
   FlatList,
   Keyboard,
-  ScrollView,
-  KeyboardAvoidingView
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -27,78 +24,88 @@ const COLOR = {
   pinkColor: '#CF9EF5',
 };
 
-const exam = [
-  {
-    "id": 1633698553197,
-    "mainTask": {
-      "title": "Main task  1",
-      "status": false,
-      "date": "08/10/2021",
-      "time": "08:02 PM",
-      "priority": "MEDIUM"
-    },
-    "subTask": [
-      {
-        "id": 1633698553195,
-        "title": "subtask 1.1",
-        "status": false,
-        "date": "08/10/2021",
-        "time": "08:02 PM",
-        "priority": "MEDIUM"
-      },
-      {
-        "id": 1633698553196,
-        "title": "subtask 1.2",
-        "status": false,
-        "date": "08/10/2021",
-        "time": "08:02 PM",
-        "priority": "MEDIUM"
-      }
-    ]
-  },
-  {
-    "id": 1633698553190,
-    "mainTask": {
-      "title": "Main task 2",
-      "status": false,
-      "date": "08/10/2021",
-      "time": "08:02 PM",
-      "priority": "MEDIUM"
-    },
-    "subTask": [
-      {
-        "id": 1633698553192,
-        "title": "subtask 2.1",
-        "status": false,
-        "date": "08/10/2021",
-        "time": "08:02 PM",
-        "priority": "MEDIUM"
-      },
-      {
-        "id": 1633698553193,
-        "title": "subtask 2.2",
-        "status": false,
-        "date": "08/10/2021",
-        "time": "08:02 PM",
-        "priority": "MEDIUM"
-      }
-    ]
-  }
-];
+
+const TASK_STATUS = {
+  DONE: true,
+  NOT_DONE: false,
+};
 
 const App = () => {
   const [isShowAdd, setIsShowAdd] = useState(false);
   const [isAddSubTask, setIsAddSubTask] = useState(false);
   const [mainTaskIdForAdd, setMainTaskIdForAdd] = useState(0);
   const [isShowSearch, setIsShowSearch] = useState(false);
-  const [taskList, setTaskList] = useState(exam);
+  const [taskList, setTaskList] = useState([]);
   const [showNotDone, setShowNotDone] = useState(true);
   const [showDone, setShowDone] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const [showData, setShowData] = useState(exam);
+  const [showData, setShowData] = useState([]);
 
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  useEffect(() => {
+    explainShowData();
+  }, [taskList, showAll, showDone, showNotDone]);
+
+
+  async function getData() {
+    try {
+      const value = await AsyncStorage.getItem('@storage_Key');
+      console.log('Task list from storage: ' + value);
+      if (value !== null && value.length >= 0) {
+        let dt = JSON.parse(value);
+        setTaskList(dt);
+        explainShowData();
+      }
+    } catch (e) {
+    }
+  }
+  async function storeData() {
+    try {
+      if (taskList != null && taskList !== undefined) {
+        let strDt = JSON.stringify(taskList);
+        console.log('Task list ' + strDt);
+        await AsyncStorage.setItem('@storage_Key', strDt);
+      } else {
+        return;
+      }
+    } catch (e) {
+      return;
+    }
+  }
+  function explainShowData() {
+    let data = [];
+    if (showNotDone) {
+      console.log('SHOW NOT DONE');
+      data = taskList.filter(item => item.mainTask.status === TASK_STATUS.NOT_DONE);
+    } else if (showDone) {
+      console.log('SHOW DONE');
+      data = taskList.filter(item => item.mainTask.status === TASK_STATUS.DONE);
+    } else {
+      console.log('SHOW ALL');
+      data = taskList;
+    }
+    console.log('Show data ' + JSON.stringify(data))
+    setShowData(data);
+  }
   const searching = (text) => {
     console.log("search text " + text)
+    let newDataShow = [];
+    for (const item of taskList) {
+      if (item.mainTask.title.includes(text)) {
+        newDataShow.push(item)
+      } else {
+        for (const subItem of item.subTask) {
+          if (subItem.title.includes(text)) {
+            newDataShow.push(item)
+          }
+        }
+      }
+    }
+    setShowData(newDataShow);
   }
   const _setShow = value => {
     console.log('Show ' + value);
@@ -119,54 +126,88 @@ const App = () => {
     }
   };
   const addTask = (newTask) => {
-    console.log('new task to add ' + JSON.stringify(newTask));
     if (!isAddSubTask) {
+      console.log('new task to add ' + JSON.stringify(newTask));
       setTaskList([...taskList, newTask]);
-      setShowData([...showData, newTask]);
     } else {
-      newTask.mainTask.id = new Date().getTime();
-      newTask.mainTask.subTask = undefined;
+      let newSubTask = newTask.mainTask;
+      newSubTask.id = new Date().getTime();
+      console.log('new task to add ' + JSON.stringify(newSubTask));
       console.log('Add subtask ' + mainTaskIdForAdd)
-      let newShowData = showData.map((task) => {
+      let newTaskList = taskList.map((task) => {
+        if (task.subTask === undefined) {
+          task.subTask = [];
+        }
+        console.log('Task ' + JSON.stringify(task.subTask));
         if (task.id === mainTaskIdForAdd) {
           return {
             ...task,
-            subTask: [...task.subTask, newTask.mainTask]
+            subTask: [...task.subTask, newSubTask]
           }
         } else {
           return task;
         }
       });
-      setShowData(newShowData);
+      setTaskList(newTaskList);
     }
-    setIsShowAdd(false);
+    storeData();
+    explainShowData();
     console.log(JSON.stringify(taskList));
+    Keyboard.dismiss();
   }
   const showAddTask = (isSubTask, mainTaskId) => {
-    setIsShowAdd(!isShowAdd);
+    setIsShowAdd(true);
     if (isSubTask) {
       setMainTaskIdForAdd(mainTaskId);
+      setIsAddSubTask(true);
+    } else {
+      setMainTaskIdForAdd(0);
+      setIsAddSubTask(false);
     }
-    setIsAddSubTask(isSubTask);
   }
+  const deleteMainTask = (mainTaskId) => {
+    console.log('Delete Task id ' + mainTaskId);
+    let newTask = taskList.filter(item => item.id !== mainTaskId);
+    setTaskList(newTask);
+    storeData();
+  };
+  const deleteSubTask = (mainTaskId, subTaskId) => {
+    console.log('Delete Task id ' + mainTaskId);
+    let newTask = [];
+    for (const item of taskList) {
+      if (item.id === mainTaskId) {
+        let newSubTask = item.subTask.filter(item => item.id !== subTaskId);
+        item.subTask = newSubTask;
+        newTask.push(item);
+      } else {
+        newTask.push(item);
+      }
+    }
+    setTaskList(newTask);
+    storeData();
+  };
   const changeStatusMainTask = (mainTaskId) => {
     console.log('Çhange status main task at APP ' + mainTaskId)
-    let newShowData = showData.map((task) => {
+    let newTaskList = taskList.map((task) => {
       if (task.id === mainTaskId) {
         return {
           ...task,
           mainTask: {
             ...task.mainTask,
             status: !task.mainTask.status
-          }
+          },
+          subTask: task.subTask.map((subTask) => {
+            return {
+              ...subTask,
+              status: !task.mainTask.status
+            }
+          })
         }
       } else {
         return task;
       }
     });
-    console.log('olde task ' + JSON.stringify(showData));
-    console.log('new task ' + JSON.stringify(newShowData));
-    setShowData(newShowData);
+    setTaskList(newTaskList);
   }
 
   const changeStatusSubTask = (mainTaskId, subTaskId) => {
@@ -192,6 +233,7 @@ const App = () => {
           return mainTask;
         }
       });
+
     setShowData(newTask);
   }
   const setOptionZone = value => {
@@ -209,6 +251,8 @@ const App = () => {
       setIsShowAdd(false);
       setIsShowSearch(false);
     }
+    setIsAddSubTask(false);
+    setMainTaskIdForAdd(0);
   };
 
   console.log(JSON.stringify(showData))
@@ -279,8 +323,16 @@ const App = () => {
           {showData.length !== 0 ?
             (<FlatList
               removeClippedSubviews={false}
-              data={showData.length === 0 ? tasks : showData}
-              renderItem={({ item }) => <Tasks taskItem={item} changeStatusMainTask={changeStatusMainTask} changeStatusSubTask={changeStatusSubTask} showAddTask={showAddTask} />}
+              data={showData.length === 0 ? taskList : showData}
+              renderItem={({ item }) => <Tasks
+                taskItem={item}
+                changeStatusMainTask={changeStatusMainTask}
+                changeStatusSubTask={changeStatusSubTask}
+                showAddTask={showAddTask}
+                deleteMainTask={deleteMainTask}
+                deleteSubTask={deleteSubTask}
+              />
+              }
               keyExtractor={(item, index) => String(index)}
               contentContainerStyle={[styles.taskListItem, { flexGrow: 1 }]}
             />)
@@ -310,6 +362,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 15,
     justifyContent: 'space-between',
+  },
+  taskListItem: {
+    paddingHorizontal: 15,
   },
   addTaskAndSearchButton: {
     paddingHorizontal: 15,

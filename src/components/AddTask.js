@@ -18,12 +18,6 @@ const COLOR = {
     pinkColor: '#CF9EF5',
 };
 
-const TASK_STATUS = {
-    DONE: true,
-    NOT_DONE: false,
-};
-
-
 const AddTask = (props) => {
     const { addTask } = props;
     const [titleTask, setTitleTask] = useState('');
@@ -54,6 +48,7 @@ const AddTask = (props) => {
                     <TouchableOpacity style={styles.addingTaskButton} onPress={() => [addTask(
                         {
                             id: new Date().getTime(),
+                            subTask: [],
                             mainTask: {
                                 title: titleTask,
                                 status: false,
@@ -184,7 +179,7 @@ const styles = StyleSheet.create({
     },
     addingTaskContainer: {
         flexDirection: 'row',
-        marginTop: 10,
+        marginTop: 2,
         alignItems: 'center',
         paddingHorizontal: 15,
     },

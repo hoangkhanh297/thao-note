@@ -12,13 +12,8 @@ const COLOR = {
   greenColor: 'rgb(77, 196, 144)',
   pinkColor: '#CF9EF5',
 };
-const TASK_STATUS = {
-  DONE: true,
-  NOT_DONE: false,
-};
 const Task = props => {
-  const { task, changeStatusMainTask, onCollapse, mainTaskId } = props;
-
+  const { task, changeStatusMainTask, onCollapse, mainTaskId, deleteMainTask } = props;
   console.log("Main task " + JSON.stringify(task))
   return (
     <View style={styles.preTaskContainer}>
@@ -49,7 +44,7 @@ const Task = props => {
       </View>
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => _deleteTask(task.id)}>
+        onPress={() => deleteMainTask(mainTaskId)}>
         <Icon
           name={'times-circle'}
           size={24}

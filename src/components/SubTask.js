@@ -17,7 +17,7 @@ const TASK_STATUS = {
   NOT_DONE: false,
 };
 const SubTask = props => {
-  const { task, mainTaskId, changeStatusSubTask } = props;
+  const { task, mainTaskId, changeStatusSubTask, deleteSubTask } = props;
   console.log('Sub task ' + JSON.stringify(task));
   return (
     <View style={styles.preTaskContainer}>
@@ -46,7 +46,7 @@ const SubTask = props => {
       </View>
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => _deleteTask(task.id)}>
+        onPress={() => deleteSubTask(mainTaskId, task.id)}>
         <Icon
           name={'times-circle'}
           size={24}

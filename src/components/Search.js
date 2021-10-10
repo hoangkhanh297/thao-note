@@ -26,7 +26,7 @@ const Search = (props) => {
         <TextInput
           placeholder={'Tìm gì nè baby ♥'}
           style={styles.searchText}
-           value={searchText}
+          value={searchText}
           onChangeText={(text) => searching(text)}
         />
         <TouchableOpacity style={styles.addingTaskButton} onPress={() => setSearchText(null)}>
