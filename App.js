@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   FlatList,
   Keyboard,
+  ScrollView,
+  KeyboardAvoidingView
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -85,8 +87,10 @@ const exam = [
 ];
 
 const App = () => {
-  const [isShowAdd, setIsShowAdd] = useState(true);
-  const [isShowSearch, setIsShowSearch] = useState(true);
+  const [isShowAdd, setIsShowAdd] = useState(false);
+  const [isAddSubTask, setIsAddSubTask] = useState(false);
+  const [mainTaskIdForAdd, setMainTaskIdForAdd] = useState(0);
+  const [isShowSearch, setIsShowSearch] = useState(false);
   const [taskList, setTaskList] = useState(exam);
   const [showNotDone, setShowNotDone] = useState(true);
   const [showDone, setShowDone] = useState(false);
@@ -114,11 +118,36 @@ const App = () => {
       setShowAll(true);
     }
   };
-  const saveTask = (newTask) => {
+  const addTask = (newTask) => {
     console.log('new task to add ' + JSON.stringify(newTask));
-    setTaskList([...taskList, newTask]);
-    setShowData([...showData, newTask]);
+    if (!isAddSubTask) {
+      setTaskList([...taskList, newTask]);
+      setShowData([...showData, newTask]);
+    } else {
+      newTask.mainTask.id = new Date().getTime();
+      newTask.mainTask.subTask = undefined;
+      console.log('Add subtask ' + mainTaskIdForAdd)
+      let newShowData = showData.map((task) => {
+        if (task.id === mainTaskIdForAdd) {
+          return {
+            ...task,
+            subTask: [...task.subTask, newTask.mainTask]
+          }
+        } else {
+          return task;
+        }
+      });
+      setShowData(newShowData);
+    }
+    setIsShowAdd(false);
     console.log(JSON.stringify(taskList));
+  }
+  const showAddTask = (isSubTask, mainTaskId) => {
+    setIsShowAdd(!isShowAdd);
+    if (isSubTask) {
+      setMainTaskIdForAdd(mainTaskId);
+    }
+    setIsAddSubTask(isSubTask);
   }
   const changeStatusMainTask = (mainTaskId) => {
     console.log('Çhange status main task at APP ' + mainTaskId)
@@ -181,6 +210,7 @@ const App = () => {
       setIsShowSearch(false);
     }
   };
+
   console.log(JSON.stringify(showData))
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -199,7 +229,7 @@ const App = () => {
             </TouchableOpacity>
           </View>
           <View>
-            {isShowAdd ? <AddTask addTask={saveTask} /> : isShowSearch ? <Search searching={searching} /> : <View />}
+            {isShowAdd ? <AddTask addTask={addTask} /> : isShowSearch ? <Search searching={searching} /> : <View />}
           </View>
 
           <View style={styles.titleBodyContainer}>
@@ -248,8 +278,9 @@ const App = () => {
           </View>
           {showData.length !== 0 ?
             (<FlatList
+              removeClippedSubviews={false}
               data={showData.length === 0 ? tasks : showData}
-              renderItem={({ item }) => <Tasks taskItem={item} changeStatusMainTask={changeStatusMainTask} changeStatusSubTask={changeStatusSubTask} />}
+              renderItem={({ item }) => <Tasks taskItem={item} changeStatusMainTask={changeStatusMainTask} changeStatusSubTask={changeStatusSubTask} showAddTask={showAddTask} />}
               keyExtractor={(item, index) => String(index)}
               contentContainerStyle={[styles.taskListItem, { flexGrow: 1 }]}
             />)

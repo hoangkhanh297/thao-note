@@ -3,10 +3,14 @@ import {
   StyleSheet,
   View,
   Text,
+  TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import Collapsible from 'react-native-collapsible';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import Task from "./Task.js";
 import SubTask from "./SubTask.js";
+import AddTask from './AddTask.js';
 
 const COLOR = {
   mainColor: '#6C6DB4',
@@ -18,7 +22,7 @@ const TASK_STATUS = {
   NOT_DONE: false,
 };
 const Tasks = (props) => {
-  const { taskItem, changeStatusSubTask, changeStatusMainTask } = props;
+  const { taskItem, changeStatusSubTask, changeStatusMainTask, showAddTask } = props;
   const [isCollapsed, setIsCollapsed] = useState(true);
 
   const onCollapse = () => {
@@ -33,15 +37,20 @@ const Tasks = (props) => {
   console.log('Task item at TaskWithSubTask ' + JSON.stringify(taskItem))
   return (
     <View style={{ flex: 1 }}>
-      <Task mainTaskId={taskItem.id} task={taskItem.mainTask} changeStatusMainTask={changeStatusMainTask} onCollapse={onCollapse} />
+      <View>
+        <Task mainTaskId={taskItem.id} task={taskItem.mainTask} changeStatusMainTask={changeStatusMainTask} onCollapse={onCollapse}  />
+        <TouchableOpacity onPress={() => showAddTask(true, taskItem.id)}>
+          <Icon name="plus-circle" size={24} color={COLOR.mainColor} style={{ marginRight: 5 }} />
+        </TouchableOpacity>
+      </View>
       <Collapsible collapsed={isCollapsed}>
-      { taskItem.subTask != undefined && taskItem.subTask != null && taskItem.subTask.length !== 0 ? (
-        taskItem.subTask.map((item) => {
-          return (
-            <SubTask task={item} changeStatusSubTask={changeStatusSubTask} mainTaskId={taskItem.id} />
-          )
-        })
-      ) : (<Text>Chua co task</Text>)}
+        {taskItem.subTask != undefined && taskItem.subTask != null && taskItem.subTask.length !== 0 ? (
+          taskItem.subTask.map((item) => {
+            return (
+              <SubTask task={item} changeStatusSubTask={changeStatusSubTask} mainTaskId={taskItem.id} />
+            )
+          })
+        ) : (<Text>Chua co task</Text>)}
 
       </Collapsible>
     </View>

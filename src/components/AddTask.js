@@ -51,7 +51,7 @@ const AddTask = (props) => {
                         value={titleTask}
                         onChangeText={setTitleTask}
                     />
-                    <TouchableOpacity style={styles.addingTaskButton} onPress={() => addTask(
+                    <TouchableOpacity style={styles.addingTaskButton} onPress={() => [addTask(
                         {
                             id: new Date().getTime(),
                             mainTask: {
@@ -62,7 +62,7 @@ const AddTask = (props) => {
                                 subTask: [],
                                 priority: priority,
                             }
-                        })}>
+                        }), setTitleTask('')]}>
                         <Icon name="plus-circle" size={24} color={COLOR.mainColor} style={{ marginRight: 5 }} />
                     </TouchableOpacity>
                 </View>

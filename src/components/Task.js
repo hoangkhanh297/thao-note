@@ -18,6 +18,7 @@ const TASK_STATUS = {
 };
 const Task = props => {
   const { task, changeStatusMainTask, onCollapse, mainTaskId } = props;
+
   console.log("Main task " + JSON.stringify(task))
   return (
     <View style={styles.preTaskContainer}>
@@ -26,7 +27,7 @@ const Task = props => {
           <Icon name={'heart'} size={24} color={task.status ? COLOR.greenColor : 'red'} />
         </TouchableOpacity>
         <TouchableOpacity style={{ marginLeft: 5, width: '70%' }} onPress={() => onCollapse()}>
-            <Text style={styles.taskOnceTitle}>{task.title}</Text>
+          <Text style={styles.taskOnceTitle}>{task.title}</Text>
         </TouchableOpacity>
       </View>
       <View style={[styles.rowDirect]}>
