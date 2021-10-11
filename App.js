@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import notifee, { TimestampTrigger, TriggerType, EventType, AndroidImportance, AndroidBadgeIconType, AndroidStyle } from '@notifee/react-native';
+import { format } from 'date-fns';
 
 import Header from "./src/components/Header.js";
 import AddTask from "./src/components/AddTask.js";
@@ -23,7 +25,6 @@ const COLOR = {
   greenColor: 'rgb(77, 196, 144)',
   pinkColor: '#CF9EF5',
 };
-
 
 const TASK_STATUS = {
   DONE: true,
@@ -42,15 +43,65 @@ const App = () => {
   const [showData, setShowData] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [isFetching, setIsFetching] = useState(true);
+  const [selectedId, setSelectedId] = useState(0);
 
   useEffect(() => {
     getData();
+    return notifee.onForegroundEvent(({ type, detail }) => {
+      switch (type) {
+        case EventType.DISMISSED:
+          console.log('User dismissed notification', detail.notification);
+          break;
+        case EventType.PRESS:
+          console.log('User pressed notification', detail.notification);
+          break;
+      }
+    });
   }, []);
 
   useEffect(() => {
     explainShowData();
   }, [taskList, showAll, showDone, showNotDone]);
 
+  async function cancelNotification(notificationId) {
+    await notifee.cancelNotification(notificationId);
+  }
+  async function onDisplayNotification(task) {
+    // const date = new Date(task.mainTask.date + ' ' + task.mainTask.time);
+    const date = new Date();
+    const expireDate = format(date, 'dd/MM/yyyy HH:mm:ss a');
+    date.setSeconds(date.getSeconds() + 10)
+    console.log('Scheduling at ' + format(date, 'dd/MM/yyyy HH:mm:ss a') + ' ' + task.mainTask.title);
+    const trigger: TimestampTrigger = {
+      type: TriggerType.TIMESTAMP,
+      timestamp: date.getTime(),
+    };
+    // Create a channel
+    const channelId = await notifee.createChannel({
+      id: String(task.id),
+      name: 'Important Notifications',
+      lights: true,
+      vibration: true,
+      importance: AndroidImportance.HIGH,
+    });
+    // Display a notification
+    await notifee.createTriggerNotification({
+      title: '<p style="color: #4caf50;"><b>Hello baby, 10p nữa là phải done task nè!! </span></p></b></p> &#128576;',
+      body: 'Có task"' + ' cần hoàn thành trước ' + expireDate,
+      android: {
+        channelId,
+        smallIcon: 'ic_launcher', // optional, defaults to 'ic_launcher'.
+        color: '#9c27b0',
+        largeIcon: require('./src/assets/images/avt.jpg'),
+        importance: AndroidImportance.HIGH,
+        badgeIconType: AndroidBadgeIconType.SMALL,
+        badge: true,
+        style: { type: AndroidStyle.BIGPICTURE, summary: task.mainTask.title, picture: require('./src/assets/images/notification.jpg') },
+      },
+    },
+      trigger,
+    );
+  }
   async function getData() {
     try {
       setIsFetching(true);
@@ -138,6 +189,7 @@ const App = () => {
     if (!isAddSubTask) {
       console.log('new task to add ' + JSON.stringify(newTask));
       setTaskList([...taskList, newTask]);
+      onDisplayNotification(newTask);
     } else {
       let newSubTask = newTask.mainTask;
       newSubTask.id = new Date().getTime();
@@ -216,6 +268,12 @@ const App = () => {
         return task;
       }
     });
+    for (const item of taskList) {
+      if (mainTaskId === item.id && item.mainTask.status) {
+        console.log('Cancel notification at task id ' + mainTaskId)
+        cancelNotification(mainTaskId);
+      }
+    }
     setTaskList(newTaskList);
   }
 
@@ -345,7 +403,9 @@ const App = () => {
                 deleteSubTask={deleteSubTask}
               />
               }
-              keyExtractor={(item, index) => String(index)}
+              extraData={selectedId }
+              style={item.id === selectedId ? styles.selected : null} 
+              keyExtractor={(item) => String(item.id)}
               contentContainerStyle={[styles.taskListItem, { flexGrow: 1 }]}
             />)
             : <NonTask text={showAll && searchText === ''
@@ -365,6 +425,9 @@ const App = () => {
 const styles = StyleSheet.create({
   backgroundStyle: {
     flex: 1,
+  },
+  selected:{
+    borderWidth: 1,
   },
   parentContainer: {
     flex: 1,

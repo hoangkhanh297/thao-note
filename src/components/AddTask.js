@@ -71,6 +71,7 @@ const AddTask = (props) => {
                         placeholder={'Làm gì, lúc nào nè baby ♥'}
                         style={styles.titleText}
                         value={titleTask}
+                        maxLength={70}
                         onChangeText={(text) => [setTitleTask(text), setError('')]}
                     />
                     <TouchableOpacity style={styles.addingTaskButton} onPress={() => validateAndAdd()}>
