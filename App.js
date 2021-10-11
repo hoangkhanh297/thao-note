@@ -8,6 +8,11 @@ import {
   TouchableOpacity,
   FlatList,
   Keyboard,
+  Modal,
+  ToastAndroid,
+  Pressable,
+  Image,
+  Alert
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -43,7 +48,10 @@ const App = () => {
   const [showData, setShowData] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [isFetching, setIsFetching] = useState(true);
-  const [selectedId, setSelectedId] = useState(0);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [popupText, setPopupText] = useState('');
+  const [popupDetail, setPopupDetail] = useState('');
+
 
   useEffect(() => {
     getData();
@@ -54,6 +62,10 @@ const App = () => {
           break;
         case EventType.PRESS:
           console.log('User pressed notification', detail.notification);
+          setPopupText(detail.notification.body + ':')
+          setPopupDetail(detail.notification.android.style.summary)
+          console.log('POPUP TEXT ' + popupText + popupDetail)
+          setModalVisible(true);
           break;
       }
     });
@@ -63,8 +75,9 @@ const App = () => {
     explainShowData();
   }, [taskList, showAll, showDone, showNotDone]);
 
+
   async function cancelNotification(notificationId) {
-    await notifee.cancelNotification(notificationId);
+    await notifee.cancelNotification(String(notificationId));
   }
   async function onDisplayNotification(task) {
     // const date = new Date(task.mainTask.date + ' ' + task.mainTask.time);
@@ -87,7 +100,7 @@ const App = () => {
     // Display a notification
     await notifee.createTriggerNotification({
       title: '<p style="color: #4caf50;"><b>Hello baby, 10p nữa là phải done task nè!! </span></p></b></p> &#128576;',
-      body: 'Có task"' + ' cần hoàn thành trước ' + expireDate,
+      body: 'Deadline at ' + expireDate,
       android: {
         channelId,
         smallIcon: 'ic_launcher', // optional, defaults to 'ic_launcher'.
@@ -268,13 +281,22 @@ const App = () => {
         return task;
       }
     });
+    setTaskList(newTaskList);
     for (const item of taskList) {
-      if (mainTaskId === item.id && item.mainTask.status) {
+      if (mainTaskId === item.id && !item.mainTask.status) {
         console.log('Cancel notification at task id ' + mainTaskId)
+        ToastAndroid.showWithGravityAndOffset(
+          "Giỏi quá baby ơiiii ♥ !!!",
+          ToastAndroid.LONG,
+          ToastAndroid.BOTTOM,
+          25,
+          50
+        );
         cancelNotification(mainTaskId);
+      } else if (mainTaskId === item.id) {
+        onDisplayNotification(item);
       }
     }
-    setTaskList(newTaskList);
   }
 
   const changeStatusSubTask = (mainTaskId, subTaskId) => {
@@ -329,6 +351,30 @@ const App = () => {
         <StatusBar hidden />
         <View style={styles.parentContainer} >
           <Header />
+          {modalVisible ? (
+            <Modal
+              animationType="slide"
+              transparent={true}
+              animationType='fade'
+              visible={modalVisible}
+              onRequestClose={() => {
+                Alert.alert("Modal has been closed.");
+                setModalVisible(!modalVisible);
+              }}
+            >
+              <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <Text style={styles.modalText}>{popupText}</Text>
+                  <Text style={[styles.modalText, { fontWeight: '400' }]}>{popupDetail}</Text>
+                  <Pressable
+                    style={[styles.button, styles.buttonClose]}
+                    onPress={() => setModalVisible(!modalVisible)}
+                  >
+                    <Text style={styles.textStyle}>Oke anh yêu</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </Modal>) : (<View />)}
           <View style={styles.optionZone}>
             <TouchableOpacity style={styles.addTaskAndSearchButton} onPress={() => setOptionZone('ADD')}>
               <Icon name={'plus'} />
@@ -403,8 +449,6 @@ const App = () => {
                 deleteSubTask={deleteSubTask}
               />
               }
-              extraData={selectedId }
-              style={item.id === selectedId ? styles.selected : null} 
               keyExtractor={(item) => String(item.id)}
               contentContainerStyle={[styles.taskListItem, { flexGrow: 1 }]}
             />)
@@ -423,11 +467,48 @@ const App = () => {
 };
 
 const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "#e6f6f7",
+    borderRadius: 20,
+    borderColor: '#FF6DAA',
+    borderWidth: 3,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#FF6DAA",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2
+  },
+  buttonClose: {
+    backgroundColor: "#FFABCE",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center"
+  },
+  modalText: {
+    marginBottom: 15,
+    fontWeight: "bold",
+    textAlign: "center"
+  },
   backgroundStyle: {
     flex: 1,
-  },
-  selected:{
-    borderWidth: 1,
   },
   parentContainer: {
     flex: 1,

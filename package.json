@@ -16,10 +16,13 @@
     "date-fns": "^2.25.0",
     "react": "17.0.2",
     "react-native": "0.66.0",
+    "react-native-actionsheet": "^2.4.2",
     "react-native-collapsible": "^1.6.0",
     "react-native-date-picker": "^4.1.0",
     "react-native-dropdown-picker": "^5.1.28",
     "react-native-image-picker": "^4.1.1",
+    "react-native-popup-menu": "^0.15.11",
+    "react-native-toast-message": "^1.6.0",
     "react-native-vector-icons": "^8.1.0"
   },
   "devDependencies": {
